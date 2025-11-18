@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package book;
+
+// The message representing a Book object
+message Book {
+  string title = 1;
+  string author = 2;
+}
+
+// The request message for creating a new book
+message CreateBookRequest {
+  Book book = 1;
+}
+
+// The response message after attempting to create a book
+message CreateBookResponse {
+  bool success = 1;
+  string message = 2;
+}
+
+// The Book Management Service definition
+service BookService {
+  // RPC to create a new book record
+  rpc CreateBook (CreateBookRequest) returns (CreateBookResponse);
+}
