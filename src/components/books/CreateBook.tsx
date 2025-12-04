@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
 import { libraryApi } from '../../services/api';
 
-
-// 1. Import the generated Protobuf messages and client service files using namespace imports
-import * as bookProto from '../../proto/book/book_pb';
-import * as bookServiceClientProto from '../../proto/book/book_pb_service'; // Assuming this is the correct client file name
-
-// 2. Extract the required classes from their nested namespaces
-//    This must happen BEFORE trying to use them (e.g., to create 'client')
-const { Book, CreateBookRequest } = bookProto.proto.book;
-const { BookServiceClient } = bookServiceClientProto.proto.book; // Fix: This line must come before 'client' definition
-
-// 3. Define the service client address (Envoy proxy URL)
-const SERVICE_URL = 'http://localhost:9901';
-
 interface CreateBookProps {
   onBookCreated: (book: any) => void;
 }
@@ -28,16 +15,16 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
     genre: '',
     total_copies: 1
   });
+
   const [loading, setLoading] = useState(false);
-
-
-  
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name === 'publication_year' || name === 'total_copies' ? parseInt(value) : value
+      [name]: name === 'publication_year' || name === 'total_copies'
+        ? parseInt(value)
+        : value
     }));
   };
 
@@ -46,8 +33,13 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
     setLoading(true);
 
     try {
-      const newBook = await libraryApi.createBook(formData);
+      const response = await libraryApi.createBook(formData);
+
+      // 2. Fetch the newly created book using book_id
+      const newBook = await libraryApi.getBook(response.book_id);
+
       onBookCreated(newBook);
+
       setFormData({
         title: '',
         author: '',
@@ -65,12 +57,24 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
     }
   };
 
-  const genres = ['Fiction', 'Non-Fiction', 'Science Fiction', 'Fantasy', 'Mystery', 'Romance', 'Biography', 'History', 'Science', 'Technology'];
+  const genres = [
+    'Fiction',
+    'Non-Fiction',
+    'Science Fiction',
+    'Fantasy',
+    'Mystery',
+    'Romance',
+    'Biography',
+    'History',
+    'Science',
+    'Technology'
+  ];
 
   return (
     <div className="create-book-form">
       <h3>Add New Book</h3>
       <form onSubmit={handleSubmit}>
+
         <div className="form-row">
           <div className="form-group">
             <label>Title *</label>
@@ -83,7 +87,7 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
               placeholder="Enter book title"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Author *</label>
             <input
@@ -108,7 +112,7 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
               placeholder="Enter ISBN"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Publication Year</label>
             <input
@@ -133,7 +137,7 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
               placeholder="Enter publisher name"
             />
           </div>
-          
+
           <div className="form-group">
             <label>Genre</label>
             <select
@@ -142,8 +146,8 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
               onChange={handleChange}
             >
               <option value="">Select Genre</option>
-              {genres.map(genre => (
-                <option key={genre} value={genre}>{genre}</option>
+              {genres.map(g => (
+                <option key={g} value={g}>{g}</option>
               ))}
             </select>
           </div>
@@ -162,8 +166,8 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
         </div>
 
         <div className="form-actions">
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="btn btn-primary"
             disabled={loading}
           >

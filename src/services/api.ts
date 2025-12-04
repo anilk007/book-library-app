@@ -1,5 +1,5 @@
 // REST API service for the library system
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = 'http://localhost:8000';
 
 export interface Book {
   book_id: number;
@@ -25,18 +25,18 @@ export interface Member {
   status: string;
 }
 
-export interface BorrowingRecord {
-  record_id: number;
+export interface Transaction {
+  transaction_id: number;
   book_id: number;
   member_id: number;
-  borrow_date: string;
+  issue_date: string;
   due_date: string;
   return_date: string | null;
   status: string;
   created_at: string;
 }
 
-export interface BorrowingWithDetails extends BorrowingRecord {
+export interface TransactionWithDetails extends Transaction {
   book_title: string;
   book_author: string;
   member_name: string;
@@ -48,6 +48,11 @@ class LibraryApi {
   // Books API
   async getBooks(): Promise<Book[]> {
     const response = await fetch(`${API_BASE_URL}/books`);
+    return response.json();
+  }
+
+  async getBook(bookId: number): Promise<Book> {
+    const response = await fetch(`${API_BASE_URL}/books/${bookId}`);
     return response.json();
   }
 
@@ -79,6 +84,11 @@ class LibraryApi {
     return response.json();
   }
 
+  async getMember(memberId: number): Promise<Member> {
+    const response = await fetch(`${API_BASE_URL}/members/${memberId}`);
+    return response.json();
+  }
+
   async createMember(member: Omit<Member, 'member_id' | 'membership_date'>): Promise<Member> {
     const response = await fetch(`${API_BASE_URL}/members`, {
       method: 'POST',
@@ -97,40 +107,53 @@ class LibraryApi {
     return response.json();
   }
 
-  // Borrowing API
-  async borrowBook(bookId: number, memberId: number, borrowDays: number = 14): Promise<BorrowingRecord> {
-    const response = await fetch(`${API_BASE_URL}/borrow`, {
+  // Transactions API
+  async issueBook(bookId: number, memberId: number): Promise<Transaction> {
+    const response = await fetch(`${API_BASE_URL}/transactions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ book_id: bookId, member_id: memberId, borrow_days: borrowDays }),
+      body: JSON.stringify({ book_id: bookId, member_id: memberId }),
     });
     return response.json();
   }
 
-  async returnBook(recordId: number): Promise<BorrowingRecord> {
-    const response = await fetch(`${API_BASE_URL}/return`, {
+  async returnBook(transactionId: number): Promise<Transaction> {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}/return`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ record_id: recordId }),
     });
     return response.json();
   }
 
-  async getCurrentBorrowings(): Promise<BorrowingWithDetails[]> {
-    const response = await fetch(`${API_BASE_URL}/borrowings/current`);
+  async getCurrentTransactions(): Promise<TransactionWithDetails[]> {
+    const response = await fetch(`${API_BASE_URL}/transactions?status=Issued`);
     return response.json();
   }
 
-  async getBorrowingHistory(memberId?: number): Promise<BorrowingWithDetails[]> {
+  async getTransactionHistory(memberId?: number): Promise<TransactionWithDetails[]> {
     const url = memberId 
-      ? `${API_BASE_URL}/borrowings/history?member_id=${memberId}`
-      : `${API_BASE_URL}/borrowings/history`;
+      ? `${API_BASE_URL}/transactions/history?member_id=${memberId}`
+      : `${API_BASE_URL}/transactions/history`;
     const response = await fetch(url);
     return response.json();
   }
 
-  async getOverdueBooks(): Promise<BorrowingWithDetails[]> {
-    const response = await fetch(`${API_BASE_URL}/borrowings/overdue`);
+  async getOverdueTransactions(): Promise<TransactionWithDetails[]> {
+    const response = await fetch(`${API_BASE_URL}/transactions?status=Overdue`);
+    return response.json();
+  }
+
+  async getTransaction(transactionId: number): Promise<TransactionWithDetails> {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`);
+    return response.json();
+  }
+
+  async updateTransaction(transactionId: number, transaction: Partial<Transaction>): Promise<Transaction> {
+    const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(transaction),
+    });
     return response.json();
   }
 }

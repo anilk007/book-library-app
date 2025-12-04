@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import BookList from './components/books/BookList';
 import MemberList from './components/members/MemberList';
-import BorrowBook from './components/borrowing/BorrowBook';
-import CurrentBorrowings from './components/borrowing/CurrentBorrowings';
+
 import Dashboard from './components/dashboard/Dashboard';
 import './App.css';
 
@@ -19,10 +18,6 @@ const App: React.FC = () => {
         return <BookList />;
       case 'members':
         return <MemberList />;
-      case 'borrow':
-        return <BorrowBook />;
-      case 'current':
-        return <CurrentBorrowings />;
       default:
         return <Dashboard />;
     }
@@ -61,7 +56,7 @@ const App: React.FC = () => {
             className={activeTab === 'current' ? 'active' : ''}
             onClick={() => setActiveTab('current')}
           >
-            Current Borrowings
+            Current Issued Books
           </button>
         </nav>
       </header>

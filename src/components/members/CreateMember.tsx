@@ -26,7 +26,11 @@ const CreateMember: React.FC<CreateMemberProps> = ({ onMemberCreated }) => {
     setLoading(true);
 
     try {
-      const newMember = await libraryApi.createMember(formData);
+      const response = await libraryApi.createMember(formData);
+
+      // 2. Fetch the newly created newMember
+      const newMember = await libraryApi.getMember(response.member_id);
+
       onMemberCreated(newMember);
       setFormData({
         first_name: '',
