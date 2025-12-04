@@ -1,12 +1,17 @@
+// src/components/members/MemberList.tsx
 import React, { useState, useEffect } from 'react';
 import type { Member } from '../../services/api';
 import { libraryApi } from '../../services/api';
 import CreateMember from './CreateMember';
+import BookSearchModal from '../../shared/BookSearchModal';
 
 const MemberList: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const [showIssueModal, setShowIssueModal] = useState(false);
+ 
 
   useEffect(() => {
     loadMembers();
@@ -40,6 +45,32 @@ const MemberList: React.FC = () => {
     }
   };
 
+  const handleIssueClick = (member: Member) => {
+    if (member.status !== 'Active') {
+      alert(`Cannot issue books to ${member.status.toLowerCase()} members.`);
+      return;
+    }
+    setSelectedMember(member);
+    setShowIssueModal(true);
+  };
+
+  const handleIssueBook = async (bookId: number) => {
+    if (!selectedMember) return;
+
+   
+    try {
+      await libraryApi.issueBook(bookId, selectedMember.member_id);
+      alert(`Book successfully issued to ${selectedMember.first_name} ${selectedMember.last_name}`);
+      setShowIssueModal(false);
+      setSelectedMember(null);
+    } catch (error: any) {
+      console.error('Error issuing book:', error);
+      alert(error.message || 'Failed to issue book. Please try again.');
+    } finally {
+ 
+    }
+  };
+
   // Format date for display
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -67,6 +98,19 @@ const MemberList: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4">
+      {/* Issue Book Modal */}
+      {selectedMember && (
+        <BookSearchModal
+          isOpen={showIssueModal}
+          onClose={() => {
+            setShowIssueModal(false);
+            setSelectedMember(null);
+          }}
+          onIssueBook={handleIssueBook}
+          memberName={`${selectedMember.first_name} ${selectedMember.last_name}`}
+        />
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Library Members</h2>
         <button
@@ -142,6 +186,13 @@ const MemberList: React.FC = () => {
                   </td>
                   <td className="p-2 whitespace-nowrap">
                     <div className="flex space-x-2">
+                      <button
+                        className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                        onClick={() => handleIssueClick(member)}
+                        title="Issue book to this member"
+                      >
+                        Issue Book
+                      </button>
                       <button
                         className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
                         onClick={() => {

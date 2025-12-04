@@ -34,7 +34,6 @@ const CreateBook: React.FC<CreateBookProps> = ({ onBookCreated }) => {
 
     try {
       const response = await libraryApi.createBook(formData);
-
       // 2. Fetch the newly created book using book_id
       const newBook = await libraryApi.getBook(response.book_id);
 

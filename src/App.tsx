@@ -5,6 +5,9 @@ import MemberList from './components/members/MemberList';
 import Dashboard from './components/dashboard/Dashboard';
 import './App.css';
 
+import CurrentIssuedBooks from "./components/transactions/CurrentIssuedBooks";
+
+
 type TabType = 'dashboard' | 'books' | 'members' | 'borrow' | 'current';
 
 const App: React.FC = () => {
@@ -18,6 +21,8 @@ const App: React.FC = () => {
         return <BookList />;
       case 'members':
         return <MemberList />;
+      case "current":
+        return <CurrentIssuedBooks />;
       default:
         return <Dashboard />;
     }
@@ -28,31 +33,31 @@ const App: React.FC = () => {
       <header className="app-header">
         <h1>📚 Library Management System</h1>
         <nav className="app-nav">
-          <button 
+          <button
             className={activeTab === 'dashboard' ? 'active' : ''}
             onClick={() => setActiveTab('dashboard')}
           >
             Dashboard
           </button>
-          <button 
+          <button
             className={activeTab === 'books' ? 'active' : ''}
             onClick={() => setActiveTab('books')}
           >
             Books
           </button>
-          <button 
+          <button
             className={activeTab === 'members' ? 'active' : ''}
             onClick={() => setActiveTab('members')}
           >
             Members
           </button>
-          <button 
+          <button
             className={activeTab === 'borrow' ? 'active' : ''}
             onClick={() => setActiveTab('borrow')}
           >
-            Borrow Book
+           Issue Book
           </button>
-          <button 
+          <button
             className={activeTab === 'current' ? 'active' : ''}
             onClick={() => setActiveTab('current')}
           >

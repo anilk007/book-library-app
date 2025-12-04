@@ -1,7 +1,7 @@
 // src/components/shared/BookSearchModal.tsx
 import React, { useState, useEffect } from 'react';
-import type { Book } from '../../services/api';
-import { libraryApi } from '../../services/api';
+import type { Book } from '../services/api';
+import { libraryApi } from '../services/api';
 
 interface BookSearchModalProps {
   isOpen: boolean;

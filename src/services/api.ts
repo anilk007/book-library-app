@@ -156,6 +156,12 @@ class LibraryApi {
     });
     return response.json();
   }
+
+// Members API - add deleteMember method
+async deleteMember(memberId: number): Promise<void> {
+  await fetch(`${API_BASE_URL}/members/${memberId}`, { method: 'DELETE' });
+}
+  
 }
 
 export const libraryApi = new LibraryApi();
