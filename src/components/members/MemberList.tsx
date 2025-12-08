@@ -1,9 +1,9 @@
-// src/components/members/MemberList.tsx
 import React, { useState, useEffect } from 'react';
 import type { Member } from '../../services/api';
 import { libraryApi } from '../../services/api';
 import CreateMember from './CreateMember';
 import BookSearchModal from '../../shared/BookSearchModal';
+import MemberIssuedBooks from './MemberIssuedBooks';
 
 const MemberList: React.FC = () => {
   const [members, setMembers] = useState<Member[]>([]);
@@ -11,7 +11,7 @@ const MemberList: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [showIssueModal, setShowIssueModal] = useState(false);
- 
+  const [expandedMemberId, setExpandedMemberId] = useState<number | null>(null);
 
   useEffect(() => {
     loadMembers();
@@ -38,6 +38,10 @@ const MemberList: React.FC = () => {
       try {
         await libraryApi.deleteMember(memberId);
         setMembers(prev => prev.filter(member => member.member_id !== memberId));
+        // If the deleted member was expanded, close it
+        if (expandedMemberId === memberId) {
+          setExpandedMemberId(null);
+        }
       } catch (error) {
         console.error('Error deleting member:', error);
         alert('Error deleting member. They might have active transactions.');
@@ -57,7 +61,6 @@ const MemberList: React.FC = () => {
   const handleIssueBook = async (bookId: number) => {
     if (!selectedMember) return;
 
-   
     try {
       await libraryApi.issueBook(bookId, selectedMember.member_id);
       alert(`Book successfully issued to ${selectedMember.first_name} ${selectedMember.last_name}`);
@@ -66,9 +69,11 @@ const MemberList: React.FC = () => {
     } catch (error: any) {
       console.error('Error issuing book:', error);
       alert(error.message || 'Failed to issue book. Please try again.');
-    } finally {
- 
     }
+  };
+
+  const toggleMemberExpansion = (memberId: number) => {
+    setExpandedMemberId(prev => prev === memberId ? null : memberId);
   };
 
   // Format date for display
@@ -144,73 +149,100 @@ const MemberList: React.FC = () => {
             </thead>
             <tbody>
               {members.map((member) => (
-                <tr key={member.member_id} className="border-b border-gray-200 hover:bg-gray-50">
-                  <td className="p-2 whitespace-nowrap">{member.member_id}</td>
-                  <td className="p-2">
-                    <div className="font-medium">
-                      {member.first_name} {member.last_name}
-                    </div>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    <a 
-                      href={`mailto:${member.email}`} 
-                      className="text-blue-600 hover:text-blue-800 hover:underline"
-                    >
-                      {member.email}
-                    </a>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    {member.phone ? (
+                <React.Fragment key={member.member_id}>
+                  <tr className="border-b border-gray-200 hover:bg-gray-50">
+                    <td className="p-2 whitespace-nowrap">{member.member_id}</td>
+                    <td className="p-2">
+                      <div className="font-medium">
+                        {member.first_name} {member.last_name}
+                      </div>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
                       <a 
-                        href={`tel:${member.phone}`}
-                        className="text-gray-700 hover:text-gray-900"
+                        href={`mailto:${member.email}`} 
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
                       >
-                        {member.phone}
+                        {member.email}
                       </a>
-                    ) : (
-                      '-'
-                    )}
-                  </td>
-                  <td className="p-2">
-                    <div className="max-w-xs truncate" title={member.address}>
-                      {member.address || '-'}
-                    </div>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    {formatDate(member.membership_date)}
-                  </td>
-                  <td className="p-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(member.status)}`}>
-                      {member.status}
-                    </span>
-                  </td>
-                  <td className="p-2 whitespace-nowrap">
-                    <div className="flex space-x-2">
-                      <button
-                        className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
-                        onClick={() => handleIssueClick(member)}
-                        title="Issue book to this member"
-                      >
-                        Issue Book
-                      </button>
-                      <button
-                        className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-                        onClick={() => {
-                          // Add edit functionality here if needed
-                          console.log('Edit member:', member.member_id);
-                        }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
-                        onClick={() => handleDeleteMember(member.member_id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {member.phone ? (
+                        <a 
+                          href={`tel:${member.phone}`}
+                          className="text-gray-700 hover:text-gray-900"
+                        >
+                          {member.phone}
+                        </a>
+                      ) : (
+                        '-'
+                      )}
+                    </td>
+                    <td className="p-2">
+                      <div className="max-w-xs truncate" title={member.address}>
+                        {member.address || '-'}
+                      </div>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      {formatDate(member.membership_date)}
+                    </td>
+                    <td className="p-2">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(member.status)}`}>
+                        {member.status}
+                      </span>
+                    </td>
+                    <td className="p-2 whitespace-nowrap">
+                      <div className="flex space-x-2">
+                        <button
+                          className="px-3 py-1 bg-green-600 text-white rounded text-sm hover:bg-green-700"
+                          onClick={() => handleIssueClick(member)}
+                          title="Issue book to this member"
+                        >
+                          Issue Book
+                        </button>
+                        <button
+                          className={`px-3 py-1 rounded text-sm ${
+                            expandedMemberId === member.member_id 
+                              ? 'bg-purple-700 text-white hover:bg-purple-800' 
+                              : 'bg-purple-600 text-white hover:bg-purple-700'
+                          }`}
+                          onClick={() => toggleMemberExpansion(member.member_id)}
+                        >
+                          {expandedMemberId === member.member_id ? 'Hide Books' : 'View Books'}
+                        </button>
+                        <button
+                          className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+                          onClick={() => {
+                            // Add edit functionality here if needed
+                            console.log('Edit member:', member.member_id);
+                          }}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+                          onClick={() => handleDeleteMember(member.member_id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                  {expandedMemberId === member.member_id && (
+                    <tr>
+                      <td colSpan={8} className="p-2">
+                        <MemberIssuedBooks
+                          memberId={member.member_id}
+                          memberName={`${member.first_name} ${member.last_name}`}
+                          isExpanded={true}
+                          onClose={() => setExpandedMemberId(null)}
+                          onBookReturned={() => {
+                            // Optional: You could refresh something here if needed
+                          }}
+                        />
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
               ))}
             </tbody>
           </table>

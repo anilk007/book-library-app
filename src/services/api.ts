@@ -117,6 +117,19 @@ class LibraryApi {
     return response.json();
   }
 
+
+  async getMemberIssuedBooks(memberId: number): Promise<TransactionWithDetails[]> {
+    // Assuming your backend has an endpoint to get issued books for a specific member
+    // You might need to adjust the endpoint based on your backend API
+    const response = await fetch(`${API_BASE_URL}/members/${memberId}/issued-books`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch issued books for member ${memberId}`);
+    }
+
+    return response.json();
+  }
+
   async returnBook(transactionId: number): Promise<Transaction> {
     const response = await fetch(`${API_BASE_URL}/transactions/${transactionId}/return`, {
       method: 'POST',
@@ -131,7 +144,7 @@ class LibraryApi {
   }
 
   async getTransactionHistory(memberId?: number): Promise<TransactionWithDetails[]> {
-    const url = memberId 
+    const url = memberId
       ? `${API_BASE_URL}/transactions/history?member_id=${memberId}`
       : `${API_BASE_URL}/transactions/history`;
     const response = await fetch(url);
@@ -157,11 +170,15 @@ class LibraryApi {
     return response.json();
   }
 
-// Members API - add deleteMember method
-async deleteMember(memberId: number): Promise<void> {
-  await fetch(`${API_BASE_URL}/members/${memberId}`, { method: 'DELETE' });
-}
-  
+  // Members API - add deleteMember method
+  async deleteMember(memberId: number): Promise<void> {
+    await fetch(`${API_BASE_URL}/members/${memberId}`, { method: 'DELETE' });
+  }
+
+
+
+
+
 }
 
 export const libraryApi = new LibraryApi();
