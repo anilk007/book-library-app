@@ -44,6 +44,17 @@ export interface TransactionWithDetails extends Transaction {
   days_overdue: number;
 }
 
+// Add this interface
+export interface IssuedMember {
+  member_id: number;
+  first_name: string;
+  last_name: string;
+  email: string;
+  issue_date: string;
+  due_date: string;
+  transaction_id: number;
+}
+
 class LibraryApi {
   // Books API
   async getBooks(): Promise<Book[]> {
@@ -121,13 +132,25 @@ class LibraryApi {
   async getMemberIssuedBooks(memberId: number): Promise<TransactionWithDetails[]> {
     // Assuming your backend has an endpoint to get issued books for a specific member
     // You might need to adjust the endpoint based on your backend API
-    const response = await fetch(`${API_BASE_URL}/members/${memberId}/issued-books`);
+    const response = await fetch(`${API_BASE_URL}/transactions/member/${memberId}`);
 
     if (!response.ok) {
       throw new Error(`Failed to fetch issued books for member ${memberId}`);
     }
 
     return response.json();
+  }
+
+  async getBookIssuedMembers(bookId: number): Promise<IssuedMember[]> {
+    const response = await fetch(`${API_BASE_URL}/transactions/book/${bookId}/issued-members`);
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch issued members for book ${bookId}`);
+    }
+
+    const data = await response.json();
+    // Return the array of members from the response
+    return data.book_issued_members || [];
   }
 
   async returnBook(transactionId: number): Promise<Transaction> {
